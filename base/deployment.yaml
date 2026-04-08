@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mern-auth
+  labels:
+    app: mern-auth
+    version: "latest"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mern-auth
+  template:
+    metadata:
+      labels:
+        app: mern-auth
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9191"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: mern-auth
+          image: mern-auth  # kustomize overlays replace this
+          ports:
+            - containerPort: 9191
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "9191"
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mern-auth-secrets
+                  key: mongodb-uri
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mern-auth-secrets
+                  key: jwt-secret
+          readinessProbe:
+            httpGet:
+              path: /api/user
+              port: 9191
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/user
+              port: 9191
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
