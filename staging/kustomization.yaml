@@ -4,9 +4,9 @@ kind: Kustomization
 namespace: mern-auth-staging
 
 resources:
-  - ../../base
+- ../../base
 
 images:
-  - name: mern-auth
-    newName: 203848753188.dkr.ecr.ap-southeast-1.amazonaws.com/mern-auth/stage
-    newTag: latest
+- name: mern-auth
+  newName: 203848753188.dkr.ecr.ap-southeast-1.amazonaws.com/mern-auth/stage
+  newTag: 22-0fbc4183
